@@ -1,0 +1,14 @@
+# python
+__pycache__/
+*.py[cod]
+*$py.class
+
+
+# vscode
+.vscode/
+.history/
+*.code-workspace
+
+
+# pycharm
+.idea
