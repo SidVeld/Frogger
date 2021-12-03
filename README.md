@@ -1,2 +1,3 @@
-# frogger
-Just a university project
+# Frogger
+
+Just a university project. Wow!
