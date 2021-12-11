@@ -1,60 +1,45 @@
-from bs4 import BeautifulSoup
+import os
 
-import requests
-import urllib3
+scripts_dir = "frogger/scripts"
 
-
-"""
-requests.get не будет возвращать ответ сайта, если у того не будет SSL
-Строка ниже отключает такую защиту.
-"""
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-URL = "https://generation-startup.ru"
-"""URL-Адрес сайта, который мы будем парсить."""
+os.system("cls")
 
 
-page = requests.get(f"{URL}/calendar", verify=False)
-"""
-Результат запроса на сайт.
+scripts = {}
+index = 1
+for script in os.listdir(scripts_dir):
+    if script.startswith("__"):
+        continue
+    scripts[index] = script[:-3]
+    index += 1
 
-Имеет тип Response. При выводе будет выводить свой код.
+while True:
+    for index, script in scripts.items():
+        print(f"{index}: {script}")
 
-Чтобы достать "начинку" сайта - нужно писать `page.content`.
+    selected_script = input("\nSelect script's number: ")
 
-`verify=False` позволяет нам делать запросы на сайты без SSL.
-Это опасно, но у этого сайта истёк сертификат.
-"""
+    if not selected_script.isdigit():
+        os.system("cls")
+        print("You must enter a single number!")
+        input("Press any key...")
+        os.system("cls")
+        continue
+
+    selected_script = int(selected_script)
+
+    if selected_script in list(scripts.keys()):
+        break
+    else:
+        os.system("cls")
+        print("No script at this number")
+        input("Press any key...")
+
+    os.system("cls")
 
 
-soup = BeautifulSoup(page.content, "html.parser")
-"""
-Готовим из начинки сайта самый настоящий суп.
+os.system("cls")
+print(f"Selected {selected_script}: {scripts[selected_script]}")
+input("Press any key...")
 
-Это объект класса `BeautifulSoup`, имеющий свои методы для парсинга.
-"""
-
-
-events = soup.find_all("a", {"class": "events-startups__item-wrap"})
-"""
-Список ивентов, найденных на главной странице сайта.
-"""
-
-for event in events:
-    event_soup = BeautifulSoup(str(event), "html.parser")
-    event_url = URL + event_soup.find("a", href=True)["href"]
-
-    event_page = requests.get(event_url, verify=False)
-    event_page_cont = BeautifulSoup(event_page.content, "html.parser")
-    event_data = event_page_cont.find_all("div", {"class": "events-detail-info__item"})
-
-    event_name = event_page_cont.select("h1", {"class": "h1 active"})[0].text.strip()
-
-    result = event_name + "\n"
-
-    for data in event_data:
-        name = data.find("div", {"class": "events-detail-info__name"}).text.strip()
-        desc = data.find("div", {"class": "events-detail-info__desc"}).text.strip().replace("\n", "")  # Костыль
-        result += f"{name} => {desc}\n"
-
-    print(result)
+os.system(f"python {scripts_dir}/{scripts[selected_script]}.py")
