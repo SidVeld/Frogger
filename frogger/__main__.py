@@ -8,10 +8,15 @@ os.system("cls")
 scripts = {}
 index = 1
 for script in os.listdir(scripts_dir):
-    if script.startswith("__"):
+    if script.startswith("__") or script.startswith("_"):
         continue
+
+    if not script.endswith(".py"):
+        continue
+
     scripts[index] = script[:-3]
     index += 1
+
 
 while True:
     for index, script in scripts.items():
