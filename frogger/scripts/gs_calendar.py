@@ -4,8 +4,9 @@ import urllib3
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.firefox.service import Service
+from selenium.common.exceptions import ElementNotInteractableException
+from webdriver_manager.firefox import GeckoDriverManager
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -16,8 +17,8 @@ URL = "https://generation-startup.ru"
 scroll_pause_time = 5
 
 # Объект класса Webdriver для браузера Firefox с импортом движка geckodriver
-s = Service(ChromeDriverManager().install())
-driver = webdriver.Chrome(service=s)
+s = Service(GeckoDriverManager().install())
+driver = webdriver.Firefox(service=s)
 
 # Передаем веб-драйверу адрес, чтобы он могу установить соединение.
 driver.get(f"{URL}/calendar")
@@ -33,7 +34,10 @@ while True:
     time.sleep(scroll_pause_time)
 
     submit_button = driver.find_element_by_css_selector('.button-add')
-    submit_button.click()
+    try:
+        submit_button.click()
+    except ElementNotInteractableException:
+        print("Finishing search.")
 
     time.sleep(scroll_pause_time)
 
