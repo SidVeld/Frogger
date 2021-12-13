@@ -30,7 +30,7 @@ DATABASE_HOST = os.getenv("DATABASE_HOST")
 s = Service(GeckoDriverManager().install())
 driver = webdriver.Firefox(service=s)
 
-# Передаем веб-драйверу адрес, чтобы он могу установить соединение.
+# Передаем веб-драйверу адрес, чтобы он мог установить соединение.
 driver.get(f"{URL}/calendar")
 
 # Определяем высоту открытой веб-драйвером страницы.
@@ -47,7 +47,7 @@ while True:
     try:
         submit_button.click()
     except ElementNotInteractableException:
-        print("Finishing search.")
+        print("Button not found.")
 
     time.sleep(SLEEP_TIME)
 
@@ -104,7 +104,9 @@ for event in events:
     # print(event_grid)
 
     try:
-        event_date = event_grid.find("div", {"class": "events-detail-info__item data active"}) \
+        event_date = event_grid.find("div", {"class": "events-detail-info__item data active"})
+        if event_date is not None:
+            event_date = event_grid.find("div", {"class": "events-detail-info__item data active"}) \
             .findChildren("div")[1].get_text() \
             .replace("\n", "").replace("  ", "")
     except TypeError:
@@ -112,7 +114,9 @@ for event in events:
         type_error_count += 1
 
     try:
-        event_place = event_grid.find("div", {"class": "events-detail-info__item local active"}) \
+        event_place = event_grid.find("div", {"class": "events-detail-info__item local active"})
+        if event_place is not None:
+            event_place = event_grid.find("div", {"class": "events-detail-info__item local active"}) \
             .findChildren("div")[1].get_text() \
             .replace("\n", "").replace("  ", "")
     except TypeError:
@@ -120,30 +124,34 @@ for event in events:
         type_error_count += 1
 
     try:
-        event_org = event_grid.find("div", {"class": "events-detail-info__item organizer active"}) \
-            .findChildren("div")[1].get_text() \
-            .replace("\n", "").replace("  ", "")
+        event_org = event_grid.find("div", {"class": "events-detail-info__item organizer active"})
+        if event_org is not None:
+            event_org = event_grid.find("div", {"class": "events-detail-info__item organizer active"}) \
+                .findChildren("div")[1].get_text() \
+                .replace("\n", "").replace("  ", "")
     except TypeError:
         print(f"{event_name} предал христа. 124 строка")
         type_error_count += 1
 
     try:
         event_site = event_grid.find("div", {"class": "events-detail-info__item site active"})
+        if event_site is not None:
+            event_site = event_grid.find("div", {"class": "events-detail-info__item site active"}).find("a")['href']
+        else:
+            event_site = event_page_cont.find("a", {"class": "button button--max active"})
+            if event_site is not None:
+                event_site = event_page_cont.find("a", {"class": "button button--max active"})['href']
     except TypeError:
         print(f"{event_name} предал христа. 133 строка")
         type_error_count += 1
 
-    if event_site is not None:
-        event_site = event_grid.find("div", {"class": "events-detail-info__item site active"}).find("a")['href']
-    else:
-        event_site = event_page_cont.find("a", {"class": "button button--max active"})['href']
 
     event_descr = event_page_cont.find("div", {"class": "events-detail__content active"}).get_text()
 
     cnx = mysql.connector.connect(
-        user=DATABASE_USER,
+        user    =DATABASE_USER,
         password=DATABASE_PASSWORD,
-        host=DATABASE_HOST,
+        host    =DATABASE_HOST,
         database=DATABASE
     )
 
@@ -177,3 +185,4 @@ for event in events:
     # print()
 
 print(type_error_count)
+driver.close()
