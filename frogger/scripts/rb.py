@@ -1,14 +1,19 @@
-# ===============================================================================================================================================================
-# Необходимы библиотеки: beautifulsoup4, selenium, time
-# Установить: pip install beautifulsoup4 mysql-connector-python webdriver-manager
-# ===============================================================================================================================================================
-import time
+import dotenv
 import mysql.connector
+import os
+import time
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.firefox.service import Service
 from webdriver_manager.firefox import GeckoDriverManager
+
+dotenv.load_dotenv()
+
+DATABASE = os.getenv("DATABASE")
+DATABASE_USER = os.getenv("DATABASE_USER")
+DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
+DATABASE_HOST = os.getenv("DATABASE_HOST")
 
 URL = "https://rb.ru/chance/"
 "Адрес страницы для парсинга"
@@ -51,8 +56,10 @@ driver.close()
 
 # Открываем связь с нашим сервером MySQL
 cnx = mysql.connector.connect(
-    user='ufaile8o_parser', password='SO8DQrzSxOr1',
-    host='ufaile8o.beget.tech', database='ufaile8o_parser'
+    user=DATABASE_USER,
+    password=DATABASE_PASSWORD,
+    host=DATABASE_HOST,
+    database=DATABASE
 )
 
 cursor = cnx.cursor()
