@@ -1,4 +1,6 @@
-# import mysql.connector  # Waiting for integration to DataBase
+import dotenv
+import mysql.connector
+import os
 import time
 import urllib3
 
@@ -14,7 +16,15 @@ URL = "https://generation-startup.ru"
 """URL-Адрес сайта, который мы будем парсить."""
 
 
-scroll_pause_time = 5
+SLEEP_TIME = 5
+
+dotenv.load_dotenv()
+
+DATABASE = os.getenv("DATABASE")
+DATABASE_USER = os.getenv("DATABASE_USER")
+DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
+DATABASE_HOST = os.getenv("DATABASE_HOST")
+
 
 # Объект класса Webdriver для браузера Firefox с импортом движка geckodriver
 s = Service(GeckoDriverManager().install())
@@ -31,7 +41,7 @@ while True:
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
     # Ждем прогрузки страницы, одновременно избегая блокировки браузером.
-    time.sleep(scroll_pause_time)
+    time.sleep(SLEEP_TIME)
 
     submit_button = driver.find_element_by_css_selector('.button-add')
     try:
@@ -39,7 +49,7 @@ while True:
     except ElementNotInteractableException:
         print("Finishing search.")
 
-    time.sleep(scroll_pause_time)
+    time.sleep(SLEEP_TIME)
 
     # Вычисляем новую высоту и сравниваем ее с предыдущей.
     new_height = driver.execute_script("return document.body.scrollHeight")
@@ -69,12 +79,14 @@ for event in events:
     # Определяем высоту открытой веб-драйвером страницы.
     last_height = driver.execute_script("return document.body.scrollHeight")
 
+    type_error_count = 0
+
     while True:
         # Прокручиваем вниз
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
         # Ждем прогрузки страницы, одновременно избегая блокировки браузером.
-        time.sleep(scroll_pause_time)
+        time.sleep(SLEEP_TIME)
 
         # Вычисляем новую высоту и сравниваем ее с предыдущей.
         new_height = driver.execute_script("return document.body.scrollHeight")
@@ -90,19 +102,36 @@ for event in events:
 
     event_grid = event_page_cont.find("div", {"class": "events-detail-info__grid"})
     # print(event_grid)
-    event_date = event_grid.find("div", {"class": "events-detail-info__item data active"}) \
-        .findChildren("div")[1].get_text() \
-        .replace("\n", "").replace("  ", "")
 
-    event_place = event_grid.find("div", {"class": "events-detail-info__item local active"}) \
-        .findChildren("div")[1].get_text() \
-        .replace("\n", "").replace("  ", "")
+    try:
+        event_date = event_grid.find("div", {"class": "events-detail-info__item data active"}) \
+            .findChildren("div")[1].get_text() \
+            .replace("\n", "").replace("  ", "")
+    except TypeError:
+        print(f"{event_name} предал христа. 108 строка")
+        type_error_count += 1
 
-    event_org = event_grid.find("div", {"class": "events-detail-info__item organizer active"}) \
-        .findChildren("div")[1].get_text() \
-        .replace("\n", "").replace("  ", "")
+    try:
+        event_place = event_grid.find("div", {"class": "events-detail-info__item local active"}) \
+            .findChildren("div")[1].get_text() \
+            .replace("\n", "").replace("  ", "")
+    except TypeError:
+        print(f"{event_name} предал христа. 116 строка")
+        type_error_count += 1
 
-    event_site = event_grid.find("div", {"class": "events-detail-info__item site active"})
+    try:
+        event_org = event_grid.find("div", {"class": "events-detail-info__item organizer active"}) \
+            .findChildren("div")[1].get_text() \
+            .replace("\n", "").replace("  ", "")
+    except TypeError:
+        print(f"{event_name} предал христа. 124 строка")
+        type_error_count += 1
+
+    try:
+        event_site = event_grid.find("div", {"class": "events-detail-info__item site active"})
+    except TypeError:
+        print(f"{event_name} предал христа. 133 строка")
+        type_error_count += 1
 
     if event_site is not None:
         event_site = event_grid.find("div", {"class": "events-detail-info__item site active"}).find("a")['href']
@@ -111,20 +140,40 @@ for event in events:
 
     event_descr = event_page_cont.find("div", {"class": "events-detail__content active"}).get_text()
 
-    print(event_name)
-    print(event_date)
-    print(event_place)
-    print(event_org)
-    print(event_site)
-    print(event_descr)
+    cnx = mysql.connector.connect(
+        user=DATABASE_USER,
+        password=DATABASE_PASSWORD,
+        host=DATABASE_HOST,
+        database=DATABASE
+    )
 
-    print()
+    cursor = cnx.cursor()
 
-    # result = event_name + "\n" + event_date
+    event_descr = " ".join(event_descr.split())
 
-    # for data in event_data:
-    #     name = data.find("div", {"class": "events-detail-info__name"}).text.strip()
-    #     desc = data.find("div", {"class": "events-detail-info__desc"}).text.strip().replace("\n", "")  # Костыль
-    #     result += f"{name} => {desc}\n"
+    event_data = (event_name, event_date, event_place, event_site, event_descr)
 
-    # print(result)
+    add_event_command = """
+                        INSERT INTO gs_calendar
+                        (name, event_date, place, site, descr)
+                        VALUES (%s, %s, %s, %s, %s)
+                        """
+
+    cursor.execute(add_event_command, event_data)
+
+    cnx.commit()
+
+    cursor.close()
+
+    cnx.close()
+
+    # print(event_name)
+    # print(event_date)
+    # print(event_place)
+    # print(event_org)
+    # print(event_site)
+    # print(event_descr)
+
+    # print()
+
+print(type_error_count)
