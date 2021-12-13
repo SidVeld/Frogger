@@ -1,4 +1,4 @@
-import mysql.connector
+# import mysql.connector  # Waiting for integration to DataBase
 import time
 import urllib3
 
