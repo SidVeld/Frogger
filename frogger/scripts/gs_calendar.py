@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.firefox.service import Service
 from selenium.common.exceptions import ElementNotInteractableException
+from selenium.common.exceptions import NoSuchElementException
 from webdriver_manager.firefox import GeckoDriverManager
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -20,10 +21,10 @@ SLEEP_TIME = 5
 
 dotenv.load_dotenv()
 
-DATABASE = os.getenv("DATABASE")
-DATABASE_USER = os.getenv("DATABASE_USER")
+DATABASE          = os.getenv("DATABASE")
+DATABASE_USER     = os.getenv("DATABASE_USER")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
-DATABASE_HOST = os.getenv("DATABASE_HOST")
+DATABASE_HOST     = os.getenv("DATABASE_HOST")
 
 
 # Объект класса Webdriver для браузера Firefox с импортом движка geckodriver
@@ -43,11 +44,16 @@ while True:
     # Ждем прогрузки страницы, одновременно избегая блокировки браузером.
     time.sleep(SLEEP_TIME)
 
-    submit_button = driver.find_element_by_css_selector('.button-add')
+
     try:
-        submit_button.click()
-    except ElementNotInteractableException:
+        submit_button = driver.find_element_by_css_selector('.button-add')
+        try:
+            submit_button.click()
+        except ElementNotInteractableException:
+            print("Button not found.")
+    except NoSuchElementException:
         print("Button not found.")
+    
 
     time.sleep(SLEEP_TIME)
 
