@@ -3,13 +3,13 @@
 Необходима для форматирования даты мероприятия
 """
 
-CREATE TABLE IF NOT EXISTS `month` (
+CREATE TABLE IF NOT EXISTS `elt_month` (
     `eng` varchar(50) NOT NULL,
     `rus` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
-INSERT INTO `month` (`eng`, `rus`)
+INSERT INTO `elt_month` (`eng`, `rus`)
 VALUES  ('January'  , 'января'),
         ('February' , 'февраля'),
         ('March'    , 'марта'),
@@ -29,13 +29,13 @@ VALUES  ('January'  , 'января'),
 Необходима для перевода кириллицы в латиницу (нужно для формирования ссылки поста)
 """
 
-CREATE TABLE IF NOT EXISTS `translit` (
+CREATE TABLE IF NOT EXISTS `elt_translit` (
     `t` varchar(3) NOT NULL,
     `f` varchar(15) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
-INSERT INTO `translit` (`t`, `f`) 
+INSERT INTO `elt_translit` (`t`, `f`) 
 VALUES  ('a', 'а'),
         ('b', 'б'),
         ('v', 'в'),

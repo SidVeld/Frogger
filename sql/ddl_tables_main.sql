@@ -2,7 +2,7 @@
 Таблицы для сайтов-источников
 """
 
-create table gs_calendar (
+create table src_gs_calendar (
 	event_id     INT not null auto_increment primary key,
  	name         varchar(255),
  	event_date   varchar(50),
@@ -11,14 +11,14 @@ create table gs_calendar (
  	descr        text          not null
 );
 
-create table gs_startaps (
+create table src_gs_startups (
 	event_id     INT           not null auto_increment primary key,
  	name         varchar(255)  not null,
  	site         varchar(255)  not null,
  	event_type   varchar(50)   not null
 );
 
-create table rvc (
+create table src_rvc (
 	event_id     INT           not null auto_increment primary key,
  	name         varchar(255)  not null,
  	event_date   varchar(50)   not null,
@@ -27,7 +27,7 @@ create table rvc (
  	descr        text          not null
 );
 
-create table changellenge (
+create table src_changellenge (
 	event_id     INT           not null auto_increment primary key,
  	name         varchar(255)  not null,
  	event_date   varchar(50)   not null,
@@ -35,7 +35,7 @@ create table changellenge (
  	status       varchar(50)   not null
 );
 
-create table rb (
+create table src_rb (
 	event_id     INT           not null auto_increment primary key,
  	name         varchar(255)  not null,
  	event_date   varchar(50)   not null,
@@ -45,7 +45,7 @@ create table rb (
 
 
 
-create table info_letter (
+create table src_info_letter (
 	file_id      int auto_increment PRIMARY KEY,
 	file_name    varchar(255),
 	link         varchar(255)
