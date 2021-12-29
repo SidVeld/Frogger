@@ -10,10 +10,10 @@ from webdriver_manager.firefox import GeckoDriverManager
 
 dotenv.load_dotenv()
 
-DATABASE = os.getenv("DATABASE")
-DATABASE_USER = os.getenv("DATABASE_USER")
+DATABASE          = os.getenv("DATABASE")
+DATABASE_USER     = os.getenv("DATABASE_USER")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
-DATABASE_HOST = os.getenv("DATABASE_HOST")
+DATABASE_HOST     = os.getenv("DATABASE_HOST")
 
 URL = "https://rb.ru/chance/"
 "Адрес страницы для парсинга"
@@ -56,9 +56,9 @@ driver.close()
 
 # Открываем связь с нашим сервером MySQL
 cnx = mysql.connector.connect(
-    user=DATABASE_USER,
+    user    =DATABASE_USER,
     password=DATABASE_PASSWORD,
-    host=DATABASE_HOST,
+    host    =DATABASE_HOST,
     database=DATABASE
 )
 
@@ -71,15 +71,15 @@ cursor = cnx.cursor()
 
 for event in events:
 
-    event_name = event.find("a", {"class": "chance__card-name-item ng-binding"}).get_text()
+    event_name       = event.find("a",   {"class": "chance__card-name-item ng-binding"  }).get_text()
 
-    event_link = event.find("a", {"class": "chance__card-name-item ng-binding"}).get('href')
+    event_link       = event.find("a",   {"class": "chance__card-name-item ng-binding"  }).get('href')
 
-    event_date_day = event.find("div", {"class": "chance__card-date-number ng-binding"}).get_text()
+    event_date_day   = event.find("div", {"class": "chance__card-date-number ng-binding"}).get_text()
 
-    event_date_month = event.find("div", {"class": "chance__card-date-month ng-binding"}).get_text()
+    event_date_month = event.find("div", {"class": "chance__card-date-month ng-binding" }).get_text()
 
-    event_type = event.find("div", {"class": "chance__card-name-categ ng-binding"}).get_text()
+    event_type       = event.find("div", {"class": "chance__card-name-categ ng-binding" }).get_text()
 
     result = f"Название: {event_name}\n\
     ссылка: {event_link}\n\
@@ -93,7 +93,7 @@ for event in events:
 
     # Строка с запросом в базу на внесение новых данных.
     add_event = """
-                INSERT INTO rb
+                INSERT INTO src_rb
                 (name, event_day, site, event_type, event_month)
                 VALUES (%s, %s, %s, %s, %s)
                 """

@@ -168,7 +168,7 @@ for event in events:
     event_data = (event_name, event_date, event_place, event_site, event_descr)
 
     add_event_command = """
-                        INSERT INTO gs_calendar
+                        INSERT INTO src_gs_calendar
                         (name, event_date, place, site, descr)
                         VALUES (%s, %s, %s, %s, %s)
                         """
