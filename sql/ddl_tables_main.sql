@@ -97,6 +97,7 @@ create table f_information (
 	is_published  bool,
 	is_deleted    bool,
 	src_id        int,
+	created_at    timestamp,
 	
 	FOREIGN KEY (src_id) REFERENCES d_src (src_id)
 );
@@ -114,6 +115,7 @@ create table f_post (
 	is_published  bool,
 	is_deleted    bool,
 	src_id        int,
+	created_at    timestamp,
 	
 	FOREIGN KEY (src_id) REFERENCES d_src (src_id)
 );
