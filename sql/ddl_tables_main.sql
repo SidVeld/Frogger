@@ -22,7 +22,6 @@ create table src_rvc (
 	event_id     INT           not null auto_increment primary key,
  	name         varchar(255)  not null,
  	event_date   varchar(50)   not null,
- 	place        varchar(255)  not null,
  	site         varchar(255)  not null,
  	descr        text          not null
 );
