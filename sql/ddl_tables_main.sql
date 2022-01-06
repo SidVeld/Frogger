@@ -14,8 +14,7 @@ create table src_gs_calendar (
 create table src_gs_startups (
 	event_id     INT           not null auto_increment primary key,
  	name         varchar(255)  not null,
- 	site         varchar(255)  not null,
- 	event_type   varchar(50)   not null
+ 	site         varchar(255)  not null
 );
 
 create table src_rvc (
