@@ -33,14 +33,26 @@ create table src_changellenge (
  	status       varchar(50)   not null
 );
 
-create table src_rb (
-	event_id     INT           not null auto_increment primary key,
- 	name         varchar(255)  not null,
- 	event_date   varchar(50)   not null,
- 	site         varchar(255)  not null,
- 	event_type   varchar(50)   not null
-);
+CREATE TABLE `src_rb` (
+  `event_id`    int(11) NOT NULL AUTO_INCREMENT,
+  `name`        varchar(255) NOT NULL,
+  `event_day`   tinyint(4) NOT NULL,
+  `site`        varchar(255) NOT NULL,
+  `event_type`  varchar(50) NOT NULL,
+  `event_month` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`event_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8
 
+
+CREATE TABLE `src_change_event` (
+  `event_id`    int(11) NOT NULL AUTO_INCREMENT,
+  `name`        varchar(255) NOT NULL,
+  `event_day`   tinyint(4) NOT NULL,
+  `site`        varchar(255) NOT NULL,
+  `event_type`  varchar(50) NOT NULL,
+  `event_month` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`event_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8
 
 
 create table src_info_letter (
