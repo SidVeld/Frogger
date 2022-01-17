@@ -1,6 +1,7 @@
 import dotenv
 import os
 
+import mysql.connector
 from mysql import connector
 from mysql.connector.connection import MySQLConnection
 from mysql.connector.cursor import MySQLCursor
@@ -18,6 +19,25 @@ DATABASE = os.getenv("DATABASE")
 DATABASE_USER = os.getenv("DATABASE_USER")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
 DATABASE_HOST = os.getenv("DATABASE_HOST")
+
+
+# очистка таблицы-источника перед наполнением
+cnx = mysql.connector.connect(
+        user    =DATABASE_USER,
+        password=DATABASE_PASSWORD,
+        host    =DATABASE_HOST,
+        database=DATABASE
+    )
+cursor = cnx.cursor()
+
+cursor.execute("truncate table src_gs_startups")
+
+cnx.commit()
+
+cursor.close()
+
+cnx.close()
+
 
 service = Service(GeckoDriverManager().install())
 
@@ -81,6 +101,9 @@ for startup_data in parsed_startups:
     cursor.execute(command, startup_data)
 
 print("The upload is completed. Finishig work.")
+
+# вызов процедуры, заполняющей фактовую таблицу
+cursor.callproc('f_get_gs_startups')
 
 connection.commit()
 cursor.close()

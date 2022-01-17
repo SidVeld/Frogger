@@ -26,6 +26,22 @@ DATABASE_USER     = os.getenv("DATABASE_USER")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
 DATABASE_HOST     = os.getenv("DATABASE_HOST")
 
+# очистка таблицы-источника перед наполнением
+cnx = mysql.connector.connect(
+        user    =DATABASE_USER,
+        password=DATABASE_PASSWORD,
+        host    =DATABASE_HOST,
+        database=DATABASE
+    )
+cursor = cnx.cursor()
+
+cursor.execute("truncate table src_gs_calendar")
+
+cnx.commit()
+
+cursor.close()
+
+cnx.close()
 
 # Объект класса Webdriver для браузера Firefox с импортом движка geckodriver
 s = Service(GeckoDriverManager().install())
@@ -177,9 +193,14 @@ for event in events:
 
     cnx.commit()
 
-    cursor.close()
+# вызов процедуры, заполняющей фактовую таблицу
+cursor.callproc('f_get_gs_calendar')
 
-    cnx.close()
+cnx.commit()
+
+cursor.close()
+
+cnx.close()
 
     # print(event_name)
     # print(event_date)

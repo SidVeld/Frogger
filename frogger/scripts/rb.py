@@ -15,6 +15,23 @@ DATABASE_USER     = os.getenv("DATABASE_USER")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
 DATABASE_HOST     = os.getenv("DATABASE_HOST")
 
+# очистка таблицы-источника перед наполнением
+cnx = mysql.connector.connect(
+        user    =DATABASE_USER,
+        password=DATABASE_PASSWORD,
+        host    =DATABASE_HOST,
+        database=DATABASE
+    )
+cursor = cnx.cursor()
+
+cursor.execute("truncate table src_rb")
+
+cnx.commit()
+
+cursor.close()
+
+cnx.close()
+
 URL = "https://rb.ru/chance/"
 "Адрес страницы для парсинга"
 
@@ -100,6 +117,9 @@ for event in events:
 
     # Выполняем запрос
     cursor.execute(add_event, data_event)
+
+# вызов процедуры, заполняющей фактовую таблицу
+cursor.callproc('f_get_rb')
 
 # В конце обязательно коммитим изменения БД.
 cnx.commit()
