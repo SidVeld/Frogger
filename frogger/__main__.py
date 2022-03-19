@@ -1,50 +1,11 @@
-import os
-
-scripts_dir = "frogger/scripts"
-
-os.system("cls")
+from frogger.controller import Controller
 
 
-scripts = {}
-index = 1
-for script in os.listdir(scripts_dir):
-    if script.startswith("__") or script.startswith("_"):
-        continue
+controller = Controller()
+controller.load_scripts()
+for number, script in enumerate(controller.scripts):
+    print(f"{number + 1}: {script.name}\n{script.description}\nMade by:{script.author}")
 
-    if not script.endswith(".py"):
-        continue
+choice = int(input("?\tNumber. Which script we want to run: ")) - 1
 
-    scripts[index] = script[:-3]
-    index += 1
-
-
-while True:
-    for index, script in scripts.items():
-        print(f"{index}: {script}")
-
-    selected_script = input("\nSelect script's number: ")
-
-    if not selected_script.isdigit():
-        os.system("cls")
-        print("You must enter a single number!")
-        input("Press any key...")
-        os.system("cls")
-        continue
-
-    selected_script = int(selected_script)
-
-    if selected_script in list(scripts.keys()):
-        break
-    else:
-        os.system("cls")
-        print("No script at this number")
-        input("Press any key...")
-
-    os.system("cls")
-
-
-os.system("cls")
-print(f"Selected {selected_script}: {scripts[selected_script]}")
-input("Press any key...")
-
-os.system(f"python {scripts_dir}/{scripts[selected_script]}.py")
+controller.scripts[choice].run()

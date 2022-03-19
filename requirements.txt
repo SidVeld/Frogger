@@ -1,6 +1,5 @@
 beautifulsoup4
 mysql.connector
-python-dotenv
 requests
 selenium
 webdriver_manager
