@@ -1,6 +1,7 @@
 import time
 
 from selenium import webdriver
+from selenium.webdriver import FirefoxOptions
 from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
@@ -122,7 +123,9 @@ class ChangeScript(Script):
         self.truncate_table()
 
         service = Service(GeckoDriverManager().install())
-        driver = webdriver.Firefox(service=service)
+        options = FirefoxOptions()
+        options.add_argument("--headless")
+        driver = webdriver.Firefox(service=service, options=options)
 
         events = self.get_events(driver)
         parsed_events = self.parse_events(events)
