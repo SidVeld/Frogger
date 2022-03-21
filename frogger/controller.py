@@ -7,6 +7,12 @@ from importlib.machinery import ModuleSpec
 from pathlib import Path
 from typing import Iterator, Tuple
 
+from selenium import webdriver
+from selenium.webdriver import FirefoxOptions
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.firefox.webdriver import WebDriver
+from webdriver_manager.firefox import GeckoDriverManager
+
 import mysql.connector
 from mysql.connector import MySQLConnection
 from mysql.connector.cursor import MySQLCursor
@@ -19,10 +25,23 @@ class Controller:
 
     def __init__(self):
         self._scripts: list[Script] = []
+        print("Creating driver...")
+        self._driver = self.create_driver()
 
     @property
     def scripts(self):
         return self._scripts
+
+    @property
+    def driver(self):
+        return self._driver
+
+    def create_driver(self) -> WebDriver:
+        """Creates Firefox driver."""
+        service = Service(GeckoDriverManager(log_level=30).install())
+        options = FirefoxOptions()
+        options.add_argument("--headless")
+        return webdriver.Firefox(service=service, options=options)
 
     def walk_scripts(self) -> Iterator[str]:
         """

@@ -1,18 +1,14 @@
 import time
 
-from selenium import webdriver
-from selenium.webdriver import FirefoxOptions
-from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.service import Service
-from webdriver_manager.firefox import GeckoDriverManager
+from selenium.webdriver.firefox.webdriver import WebDriver
 
 from bs4 import BeautifulSoup, ResultSet
 from bs4.element import Tag
 
-from frogger.script import Script
 from frogger.controller import Controller
+from frogger.script import Script
 
 
 class ChangeScript(Script):
@@ -121,13 +117,7 @@ class ChangeScript(Script):
             return
 
         self.truncate_table()
-
-        service = Service(GeckoDriverManager().install())
-        options = FirefoxOptions()
-        options.add_argument("--headless")
-        driver = webdriver.Firefox(service=service, options=options)
-
-        events = self.get_events(driver)
+        events = self.get_events(self.controller.driver)
         parsed_events = self.parse_events(events)
 
         self.load_to_database(parsed_events)
