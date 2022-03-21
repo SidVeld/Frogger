@@ -22,9 +22,15 @@ from frogger.script import Script
 
 
 class Controller:
+    """
+    Main controller.
+
+    Checks, launches, assists and manage Scripts.
+    """
 
     def __init__(self):
         self._scripts: list[Script] = []
+
         print("Creating driver...")
         self._driver = self.create_driver()
 
@@ -108,9 +114,11 @@ class Controller:
 
     @staticmethod
     def create_db_cursor(connection: MySQLConnection) -> MySQLCursor:
+        """Creates `MySQLCursor` by provided `MySQLConnection`."""
         return connection.cursor()
 
     def create_db_conn_and_cursr(self) -> Tuple[MySQLConnection, MySQLCursor]:
+        """Creates and returns `MySQLConnection` with `MySQLCursor`."""
         connection = self.create_db_connection()
         cursor = self.create_db_cursor(connection)
         return connection, cursor
