@@ -8,4 +8,5 @@ for number, script in enumerate(controller.scripts):
 
 choice = int(input("?\tNumber. Which script we want to run: ")) - 1
 
+controller.create_driver()
 controller.scripts[choice].run()
