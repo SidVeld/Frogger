@@ -59,8 +59,6 @@ class ChangeScript(Script):
         events = soup.find("ul", {"class": "new-events__tab new-events__tab--active"}) \
             .find_all("div", {"class": "new-events-card__content"})
 
-        driver.close()
-
         return events
 
     def parse_events(self, events: ResultSet[Tag]) -> list:
