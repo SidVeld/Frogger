@@ -20,17 +20,6 @@ class ChangeScript(Script):
     def __init__(self, controller: Controller):
         self.controller = controller
 
-    def is_database_working(self) -> bool:
-        """Tests connection to database."""
-        try:
-            connection, cursor = self.controller.create_db_conn_and_cursr()
-            cursor.close()
-            connection.close()
-            return True
-        except Exception as excpt:
-            print(excpt)
-            return False
-
     def truncate_table(self) -> None:
         """Truncates table in database."""
 
@@ -109,11 +98,6 @@ class ChangeScript(Script):
 
     def run(self) -> None:
         """Runs script."""
-
-        if self.is_database_working() is False:
-            print("database didn't work. Returning.")
-            return
-
         self.truncate_table()
         events = self.get_events(self.controller.driver)
         parsed_events = self.parse_events(events)

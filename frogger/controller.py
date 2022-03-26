@@ -15,6 +15,7 @@ from webdriver_manager.firefox import GeckoDriverManager
 import mysql.connector
 from mysql.connector import MySQLConnection
 from mysql.connector.cursor import MySQLCursor
+from mysql.connector.errors import ProgrammingError
 
 from frogger import scripts
 from frogger.script import Script
@@ -99,16 +100,15 @@ class Controller:
     @staticmethod
     def create_db_connection() -> MySQLConnection:
         """Creates and returns mysql connection."""
-        try:
-            file = Path("config/database.json").open("r", encoding="UTF-8")
-            config = json.load(file)
-            database = config["database"]
-            user = config["user"]
-            host = config["host"]
-            password = config["password"]
-            return mysql.connector.connect(user=user, password=password, host=host, database=database)
-        except FileNotFoundError:
-            print("Missing database config file.")
+        file = Path("config/database.json").open("r", encoding="UTF-8")
+        config = json.load(file)
+
+        database = config["database"]
+        user = config["user"]
+        host = config["host"]
+        password = config["password"]
+
+        return mysql.connector.connect(user=user, password=password, host=host, database=database)
 
     @staticmethod
     def create_db_cursor(connection: MySQLConnection) -> MySQLCursor:
@@ -120,3 +120,23 @@ class Controller:
         connection = self.create_db_connection()
         cursor = self.create_db_cursor(connection)
         return connection, cursor
+
+    def test_db_connection(self) -> bool:
+        """
+        Tries to create a connection to the database.
+
+        If an error occurs during connection, it returns `False`.
+
+        If it was possible to connect to the database, it will return `True`.
+        """
+        try:
+            connection = self.create_db_connection()
+            connection.close()
+        except FileNotFoundError:
+            print("File config/database.json doesn't exists.")
+            return False
+        except ProgrammingError as error:
+            print(f"Connection to database failed.\n-> {error}")
+            return False
+
+        return True
