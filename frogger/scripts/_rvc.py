@@ -1,163 +1,132 @@
-import dotenv
-import mysql.connector
-import os
 import time
-import urllib3
 
+from typing import Tuple
 
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.firefox.service import Service
+
+from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.common.exceptions import ElementNotInteractableException
 from selenium.common.exceptions import NoSuchElementException
-from webdriver_manager.firefox import GeckoDriverManager
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-URL = "https://www.rusventure.ru"
-"""URL-Адрес сайта, который мы будем парсить."""
-
-SLEEP_TIME = 5
-
-dotenv.load_dotenv()
-
-DATABASE          = os.getenv("DATABASE")
-DATABASE_USER     = os.getenv("DATABASE_USER")
-DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
-DATABASE_HOST     = os.getenv("DATABASE_HOST")
-
-# очистка таблицы-источника перед наполнением
-cnx = mysql.connector.connect(
-        user    =DATABASE_USER,
-        password=DATABASE_PASSWORD,
-        host    =DATABASE_HOST,
-        database=DATABASE
-    )
-cursor = cnx.cursor()
-
-cursor.execute("truncate table src_rvc")
-
-cnx.commit()
-
-cursor.close()
-
-cnx.close()
-
-# Объект класса Webdriver для браузера Firefox с импортом движка geckodriver
-s = Service(GeckoDriverManager().install())
-driver = webdriver.Firefox(service=s)
-
-# Передаем веб-драйверу адрес, чтобы он мог установить соединение.
-driver.get(f"{URL}/calendar")
-
-# Определяем высоту открытой веб-драйвером страницы.
-last_height = driver.execute_script("return document.body.scrollHeight")
-
-while True:
-    # Прокручиваем вниз
-    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-
-    # Ждем прогрузки страницы, одновременно избегая блокировки браузером.
-    time.sleep(SLEEP_TIME)
+from frogger.script import Script
+from frogger.controller import Controller
 
 
-    try:
-        submit_button = driver.find_element_by_id('load-more')
-        try:
-            submit_button.click()
-        except ElementNotInteractableException:
-            print("Button not found.")
-    except NoSuchElementException:
-        print("Button not found.")
-    
+class RVCScript(Script):
 
-    time.sleep(SLEEP_TIME)
+    _name = "RVC script."
+    _description = "Script for parcing rusventure.ru"
+    _author = "Frogger Team"
 
-    # Вычисляем новую высоту и сравниваем ее с предыдущей.
-    new_height = driver.execute_script("return document.body.scrollHeight")
-    if new_height == last_height:
-        break
-    last_height = new_height
+    def __init__(self, controller: Controller):
+        self.controller = controller
+        self.site_url = "https://www.rusventure.ru"
+        self.sleep_time = 5
 
-# Объект класса BeautifulSoup, который содержит в себе страницу в виде вложенной структуры данных
-soup = BeautifulSoup(driver.page_source, "html.parser")
+    def truncate_table(self) -> None:
+        """Truncates table for RBScript."""
+        connection, cursor = self.controller.create_db_conn_and_cursr()
+        cursor.execute("truncate table src_rvc")
+        connection.commit()
+        cursor.close()
+        connection.close()
+
+    def show_all_events(self, driver: WebDriver) -> None:
+        """Parses site rusventure.ru with provided driver and returns raw events list."""
+        driver.get(f"{self.site_url}/calendar")
+
+        last_height = driver.execute_script("return document.body.scrollHeight;")
+
+        while True:
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(self.sleep_time)
+
+            try:
+                sumbit_button = driver.find_element_by_id("load-more")
+                sumbit_button.click()
+            except ElementNotInteractableException:
+                print("Buttons isn't interactable.")
+            except NoSuchElementException:
+                print("Button not found.")
+
+            time.sleep(self.sleep_time)
+
+            new_height = driver.execute_script("return document.body.scrollHeight;")
+            if new_height == last_height:
+                break
+            last_height = new_height
+
+    def get_events(self, driver: WebDriver):
+        soup = BeautifulSoup(driver.page_source, "html.parser")
+        events = soup.find("article", {"class": "span4 no-padding-left data-href"})
+        print(f"EVENTS == {type(events)}")
+        return events
+
+    def get_parsed_events(self, driver: WebDriver, events) -> list[Tuple[str, str, str, str]]:
+        parsed_events = []
+
+        for event in events:
+            soup = BeautifulSoup(str(event), "html.parser")
+            url = self.site_url + soup.find("div", {"class": "title"}).findChild("a")["href"]
+
+            driver.get(url)
+
+            last_height = driver.execute_script("return document.body.scrollHeight")
+            while True:
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+                time.sleep(self.sleep_time)
+
+                new_height = driver.execute_script("return document.body.scrollHeight")
+                if new_height == last_height:
+                    break
+                last_height = new_height
+
+            event_soup = BeautifulSoup(driver.page_source, "html.parser")
+
+            name = event_soup.select("h1", {"class": "color4"})[0].text.strip()
+
+            article = event_soup.find("div", {"class": "span4"}).findChild("article")
+
+            date = article.find("h3", {"class": "margin-bottom"}).get_text()
+            date = " ".join(date.split())
+
+            preview = article.find("div", {"class": "title event_preview"})  # .findChild("span")
+            site = preview.find("a")['href']
+
+            description = article.find("div", {"class": "margin-bottom-40px"}).get_text()
+
+            event_data = (name, date, site, description)
+            parsed_events.append(event_data)
+
+        return parsed_events
+
+    def send_to_database(self, parsed_events: list[Tuple[str, str, str, str]]) -> None:
+        """Sends event's information to database."""
+        connection, cursor = self.controller.create_db_conn_and_cursr()
+
+        insert_event_command = """
+        INSERT INTO src_rvc
+        (name, event_date, site, descr)
+        VALUES (%s, %s, %s, %s)
+        """
+
+        for event in parsed_events:
+            cursor.execute(insert_event_command, event)
+
+        cursor.callproc("f_get_rvc")
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+    def run(self) -> None:
+        self.truncate_table()
+        events = self.show_all_events(self.controller.driver)
+        events_parsed = self.get_parsed_events(events)
+        self.send_to_database(events_parsed)
 
 
-events = soup.find_all("article", {"class": "span4 no-padding-left data-href"})
-"Список ивентов, найденных на главной странице сайта."
-
-for event in events:
-
-    event_soup = BeautifulSoup(str(event), "html.parser")
-
-    event_url = URL + event_soup.find("div", {"class": "title"}).findChild("a")["href"]
-    driver.get(event_url)
-
-    # Определяем высоту открытой веб-драйвером страницы.
-    last_height = driver.execute_script("return document.body.scrollHeight")
-
-    type_error_count = 0
-
-    while True:
-        # Прокручиваем вниз
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-
-        # Ждем прогрузки страницы, одновременно избегая блокировки браузером.
-        time.sleep(SLEEP_TIME)
-
-        # Вычисляем новую высоту и сравниваем ее с предыдущей.
-        new_height = driver.execute_script("return document.body.scrollHeight")
-        if new_height == last_height:
-            break
-        last_height = new_height
-
-    event_page_cont = BeautifulSoup(driver.page_source, "html.parser")
-
-    event_name = event_page_cont.select("h1", {"class": "color4"})[0].text.strip()
-
-    event_article = event_page_cont.find("div", {"class": "span4"}).findChild("article")
-
-    event_date = event_article.find("h3", {"class": "margin-bottom"}).get_text()
-    event_date = " ".join(event_date.split())
-
-
-    event_preview = event_article.find("div", {"class": "title event_preview"})#.findChild("span")
-
-    event_site = event_preview.find("a")['href']
-
-    event_descr = event_article.find("div", {"class": "margin-bottom-40px"}).get_text()
-
-    cnx = mysql.connector.connect(
-        user    =DATABASE_USER,
-        password=DATABASE_PASSWORD,
-        host    =DATABASE_HOST,
-        database=DATABASE
-    )
-    cursor = cnx.cursor()
-
-    event_data = (event_name, event_date, event_site, event_descr)
-
-    add_event_command = """
-                        INSERT INTO src_rvc
-                        (name, event_date, site, descr)
-                        VALUES (%s, %s, %s, %s)
-                        """
-
-    cursor.execute(add_event_command, event_data)
-    cnx.commit()
-
-# вызов процедуры, заполняющей фактовую таблицу
-cursor.callproc('f_get_rvc')
-
-cnx.commit()
-
-cursor.close()
-
-cnx.close()
-
-    # print(event_name)
-    # print(event_date)
-    # print(event_site)
-    # print(event_descr)
-
-driver.close()
+def setup(controller: Controller) -> None:
+    """Loads Script to controller."""
+    controller.add_script(RVCScript(controller))
