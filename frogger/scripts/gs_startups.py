@@ -53,17 +53,17 @@ class GSStartupsScript(Script):
 
         return parsed_startups
 
-    def send_to_database(self, parsed_startups: list[Tuple[str, str, str, str, str]]) -> None:
-        """Sends event's information to database."""
+    def send_to_database(self, parsed_startups: list[Tuple[str, str]]) -> None:
+        """Sends startup's information to database."""
         connection, cursor = self.controller.create_db_conn_and_cursr()
-        insert_event_command = """
+        insert_startup_command = """
         INSERT INTO src_gs_startups
         (name, site)
         VALUES (%s, %s)
         """
 
         for startup in parsed_startups:
-            cursor.execute(insert_event_command, startup)
+            cursor.execute(insert_startup_command, startup)
 
         cursor.callproc("f_get_gs_startups")
         connection.commit()
