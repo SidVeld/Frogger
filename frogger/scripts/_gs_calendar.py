@@ -69,7 +69,7 @@ while True:
             print("Button not found.")
     except NoSuchElementException:
         print("Button not found.")
-    
+
 
     time.sleep(SLEEP_TIME)
 
